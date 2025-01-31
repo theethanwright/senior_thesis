@@ -1,5 +1,6 @@
 {
   "dependencies": {
+    "cors-anywhere": "^0.4.4",
     "simplex-noise": "^4.0.3",
     "three": "^0.172.0"
   },

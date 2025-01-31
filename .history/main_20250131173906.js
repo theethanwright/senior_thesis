@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import { PointerLockControls } from 'three/examples/jsm/controls/PointerLockControls.js';
 
 const GOOGLE_API_KEY = 'AIzaSyAHYmaViAhziAVy1ccdDWSc6Z_yGjbZ4Iw';
-const SEARCH_ENGINE_ID = '30eeac3513aae4cbb';
+const SEARCH_ENGINE_ID = 'YOUR_SEARCH_ENGINE_ID';
 
 class ImageHandler {
     constructor() {
@@ -36,28 +36,19 @@ class ImageHandler {
 
     async displayImagesIn3D() {
         for (let i = 0; i < this.images.length; i++) {
-            try {
-                const proxyUrl = `http://localhost:8080/${this.images[i]}`;
-                const texture = await new THREE.TextureLoader().loadAsync(proxyUrl);
-                const geometry = new THREE.PlaneGeometry(1, 1);
-                const material = new THREE.MeshBasicMaterial({ 
-                    map: texture, 
-                    side: THREE.DoubleSide 
-                });
-                const plane = new THREE.Mesh(geometry, material);
-                
-                // Position in circle
-                const angle = (i / this.images.length) * Math.PI * 2;
-                plane.position.set(
-                    Math.cos(angle) * 5,
-                    Math.sin(angle) * 5,
-                    0
-                );
-                scene.add(plane);
-            } catch (error) {
-                console.error('Error loading image:', error);
-                continue; // Skip failed images
-            }
+            const texture = await new THREE.TextureLoader().loadAsync(this.images[i]);
+            const geometry = new THREE.PlaneGeometry(1, 1);
+            const material = new THREE.MeshBasicMaterial({ map: texture, side: THREE.DoubleSide });
+            const plane = new THREE.Mesh(geometry, material);
+            
+            // Position in circle
+            const angle = (i / this.images.length) * Math.PI * 2;
+            plane.position.set(
+                Math.cos(angle) * 5,
+                Math.sin(angle) * 5,
+                0
+            );
+            scene.add(plane);
         }
     }
 }
