@@ -1,8 +1,8 @@
 import { Tldraw } from 'tldraw'
 import { useSyncDemo } from '@tldraw/sync'
 import 'tldraw/tldraw.css'
-import { BrowserShapeTool, BrowserShapeUtil } from './customElements/WebBrowser'
-import { components, uiOverrides } from './customElements/ui'
+import { BrowserShapeTool, BrowserShapeUtil } from './WebBrowser'
+import { components, uiOverrides } from './ui'
 
 const customShapes = [BrowserShapeUtil]
 const customTools = [BrowserShapeTool]
