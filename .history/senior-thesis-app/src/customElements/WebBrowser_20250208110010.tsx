@@ -89,7 +89,7 @@ export function LiveBrowser({ shape }: { shape: BrowserShape }) {
 			},
     ]);
 
-    // editor.zoomToBounds(newBrowserShape);
+    editor.zoomToBounds(newBrowserShape);
   };
 
   useEffect(() => {

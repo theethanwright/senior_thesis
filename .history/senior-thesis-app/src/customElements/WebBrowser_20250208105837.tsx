@@ -29,12 +29,12 @@ export function LiveBrowser({ shape }: { shape: BrowserShape }) {
       id: `shape:${Date.now()}` as TLShapeId,
       type: 'browser' as const,
       props: {
-        w,
-        h,
         url: clickedUrl,
       },
       x: x + w + 50,
       y: y + h / 2,
+      h: h,
+      w: w,
       rotation: 0,
     };
   
@@ -89,7 +89,7 @@ export function LiveBrowser({ shape }: { shape: BrowserShape }) {
 			},
     ]);
 
-    // editor.zoomToBounds(newBrowserShape);
+    editor.zoomToBounds(newBrowserShape);
   };
 
   useEffect(() => {

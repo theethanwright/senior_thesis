@@ -7,7 +7,6 @@ import {
   TLBaseShape,
   useEditor,
   TLShapeId,
-  getArrowBindings,
 } from 'tldraw'
 
 type BrowserShape = TLBaseShape<'browser', { w: number; h: number; url: string }>;
@@ -63,35 +62,8 @@ export function LiveBrowser({ shape }: { shape: BrowserShape }) {
   
     // Create all records together.
     editor.createShapes([arrowShape]);
-
-    editor.createBindings([
-			{
-				fromId: arrowShape.id,
-				toId: shape.id,
-				type: 'arrow',
-				props: {
-					terminal: 'start',
-					normalizedAnchor: { x: 0.5, y: 0.5 },
-					isExact: false,
-					isPrecise: false,
-				},
-			},
-			{
-				fromId: arrowShape.id,
-				toId: newBrowserShape.id,
-				type: 'arrow',
-				props: {
-					terminal: 'end',
-					normalizedAnchor: { x: 0.5, y: 0.5 },
-					isExact: false,
-					isPrecise: false,
-				},
-			},
-    ]);
-
-    // editor.zoomToBounds(newBrowserShape);
   };
-
+  
   useEffect(() => {
     const handleMessage = (event: MessageEvent) => {
     // Only process messages coming from this component's iframe.
