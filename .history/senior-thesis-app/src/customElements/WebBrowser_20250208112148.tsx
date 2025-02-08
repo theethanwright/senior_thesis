@@ -88,10 +88,14 @@ export function LiveBrowser({ shape }: { shape: BrowserShape }) {
 			},
     ]);
 
-    // Zoom to the new shape.
     const shapeBounds = editor.getShapePageBounds(newBrowserShape.id);
     if (shapeBounds) {
-      editor.zoomToBounds(shapeBounds, { animation: { duration: 200 } });
+      const centerX = shapeBounds.x + shapeBounds.w / 2;
+      const centerY = shapeBounds.y + shapeBounds.h / 2;
+
+      editor.zoomToBounds({ x: centerX, y: centerY, z: 1 }, { animation: { duration: 1000 } });
+      console.log("Duplicated browser shape:", newBrowserShape.x, newBrowserShape.y);
+      console.log("Moved camera to center:", { centerX, centerY });
     }
   };
 

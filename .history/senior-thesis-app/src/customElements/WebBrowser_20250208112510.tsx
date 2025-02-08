@@ -91,7 +91,7 @@ export function LiveBrowser({ shape }: { shape: BrowserShape }) {
     // Zoom to the new shape.
     const shapeBounds = editor.getShapePageBounds(newBrowserShape.id);
     if (shapeBounds) {
-      editor.zoomToBounds(shapeBounds, { animation: { duration: 200 } });
+      editor.zoomToBounds(shapeBounds, { animation: { duration: 1000 } });
     }
   };
 

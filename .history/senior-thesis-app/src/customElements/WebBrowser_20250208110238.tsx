@@ -23,7 +23,8 @@ export function LiveBrowser({ shape }: { shape: BrowserShape }) {
     }
   
     const { x, y } = shape;
-    const { w, h } = shape.props;
+    const w = shape.props.w;
+    const h = shape.props.h;
     const newBrowserShape = {
       id: `shape:${Date.now()}` as TLShapeId,
       type: 'browser' as const,
@@ -88,11 +89,7 @@ export function LiveBrowser({ shape }: { shape: BrowserShape }) {
 			},
     ]);
 
-    // Zoom to the new shape.
-    const shapeBounds = editor.getShapePageBounds(newBrowserShape.id);
-    if (shapeBounds) {
-      editor.zoomToBounds(shapeBounds, { animation: { duration: 200 } });
-    }
+    editor.setCamera(newBrowserShape, { animation: { duration: 200 } });
   };
 
   useEffect(() => {

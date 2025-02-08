@@ -88,11 +88,11 @@ export function LiveBrowser({ shape }: { shape: BrowserShape }) {
 			},
     ]);
 
-    // Zoom to the new shape.
-    const shapeBounds = editor.getShapePageBounds(newBrowserShape.id);
-    if (shapeBounds) {
-      editor.zoomToBounds(shapeBounds, { animation: { duration: 200 } });
-    }
+    editor.setCamera(newBrowserShape, { animation: { duration: 200 } });
+    const camScreenPos = editor.getViewportScreenBounds();
+    const camPagePos = editor.getViewportScreenBounds();
+    console.log("Duplicated browser shape:", newBrowserShape.x, newBrowserShape.y);
+    console.log("Moved camera to new browser shape.", camScreenPos, camPagePos);
   };
 
   useEffect(() => {
