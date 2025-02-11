@@ -57,15 +57,14 @@ app.get("/proxy", (req, res) => {
             res.set("Content-Type", contentType);
 
             if (contentType.includes("text/html")) {
-                // Replace relative URLs using the target URL's origin
-                const baseUrl = new URL(targetUrl).origin;
+                // Convert relative URLs to absolute Wikipedia URLs
                 modifiedBody = modifiedBody.replace(
                     /href="(\/[^"]+)"/g,
-                    `href="${baseUrl}$1"`
+                    `href="https://https://$1"`
                 );
                 modifiedBody = modifiedBody.replace(
                     /src="(\/[^"]+)"/g,
-                    `src="${baseUrl}$1"`
+                    `src="https://https://$1"`
                 );
 
                 // Inject a script to track link clicks

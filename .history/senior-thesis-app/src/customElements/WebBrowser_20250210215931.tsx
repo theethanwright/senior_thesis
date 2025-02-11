@@ -8,7 +8,6 @@ import {
   useEditor,
   TLShapeId,
 } from 'tldraw'
-import { BrowserOverlayEmitter } from '../utils/BrowserOverlayEmitter'
 
 type BrowserShape = TLBaseShape<'browser', { w: number; h: number; url: string }>;
 
@@ -125,6 +124,7 @@ export function LiveBrowser({ shape }: { shape: BrowserShape }) {
       const isInSelectIdle = editor.isIn('select.idle')
       const newShowOverlay = isInSelectIdle && isSelected
       setShowOverlay(newShowOverlay)
+      console.log('Clicked:', e, { isSelected, isInSelectIdle, showOverlay: newShowOverlay })
     }
 
     tlDrawContainer.addEventListener('click', clickActivate)
@@ -132,6 +132,7 @@ export function LiveBrowser({ shape }: { shape: BrowserShape }) {
       tlDrawContainer.removeEventListener('click', clickActivate)
     }
   }, [editor, shape])
+  
 
   return (
     <div style={{ position: 'relative', width: '100%', height: '100%' }}>
@@ -177,8 +178,8 @@ export class BrowserShapeUtil extends BaseBoxShapeUtil<BrowserShape> {
 
   override getDefaultProps() {
     return {
-      w: 1000,
-      h: 500,
+      w: 400,
+      h: 300,
       url: 'https://en.wikipedia.org/wiki/Internet',
     }
   }
@@ -203,13 +204,6 @@ export class BrowserShapeUtil extends BaseBoxShapeUtil<BrowserShape> {
 
   override indicator(shape: BrowserShape) {
     return <rect width={shape.props.w} height={shape.props.h} />
-  }
-
-  override onDoubleClickEdge(shape: BrowserShape) {
-    // Signal to open the overlay with the URL from the shape.
-    BrowserOverlayEmitter.dispatchEvent(
-      new CustomEvent('open', { detail: { url: shape.props.url } })
-    )
   }
 }
 

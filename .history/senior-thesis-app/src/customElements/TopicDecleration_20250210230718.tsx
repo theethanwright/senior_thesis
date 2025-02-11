@@ -61,7 +61,7 @@ export class SearchShapeUtil extends BaseBoxShapeUtil<SearchShape> {
 				}
 
 				// Define a margin of 50px between shapes.
-				const margin = 1000
+				const margin = 50
 
 				// For each URL, create a new browser shape positioned below the search shape.
 				const newShapes = urls.map((url: string, i: number) => ({
@@ -94,7 +94,7 @@ export class SearchShapeUtil extends BaseBoxShapeUtil<SearchShape> {
 					}
 
 					const arrow = {
-						id: `shape:${Date.now()}_${i}` as TLShapeId,
+						id: `arrow:${Date.now()}_${i}` as TLShapeId,
 						type: 'arrow' as const,
 						props: {
 							color: 'black',

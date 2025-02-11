@@ -36,7 +36,7 @@ export class SearchShapeUtil extends BaseBoxShapeUtil<SearchShape> {
 
 		// Replace these with your actual API key and Custom Search Engine ID.
 		const API_KEY = 'AIzaSyCVxxk8XqyZviQx5RCHRZnQDRqjLnk4CJQ'
-		const CX = '30eeac3513aae4cbb'
+		const CX = 'YOUR_CUSTOM_SEARCH_ENGINE_ID'
 
 		const handleSearch = async () => {
 			if (!query.trim()) return
@@ -61,9 +61,10 @@ export class SearchShapeUtil extends BaseBoxShapeUtil<SearchShape> {
 				}
 
 				// Define a margin of 50px between shapes.
-				const margin = 1000
+				const margin = 50
 
 				// For each URL, create a new browser shape positioned below the search shape.
+				// Here we use the BrowserShape's default width (400) for positioning.
 				const newShapes = urls.map((url: string, i: number) => ({
 					id: `shape:${Date.now() + i}` as TLShapeId,
 					type: 'browser' as const,
@@ -71,68 +72,12 @@ export class SearchShapeUtil extends BaseBoxShapeUtil<SearchShape> {
 					y: shape.y + shape.props.h + margin,
 					rotation: 0,
 					props: {
-						w: 1000,
-						h: 500,
+						w: 400,
+						h: 300,
 						url,
 					},
 				}))
 				editor.createShapes(newShapes)
-
-				// Create arrows from the search shape to each new browser shape.
-				const searchCenter = {
-					x: shape.x + shape.props.w / 2,
-					y: shape.y + shape.props.h / 2,
-				}
-
-				const arrowShapes = []
-				const bindings = []
-
-				newShapes.forEach((browserShape, i) => {
-					const browserCenter = {
-						x: browserShape.x + browserShape.props.w / 2,
-						y: browserShape.y + browserShape.props.h / 2,
-					}
-
-					const arrow = {
-						id: `shape:${Date.now()}_${i}` as TLShapeId,
-						type: 'arrow' as const,
-						props: {
-							color: 'black',
-							start: searchCenter,
-							end: browserCenter,
-						},
-					}
-
-					arrowShapes.push(arrow)
-
-					bindings.push(
-						{
-							fromId: arrow.id,
-							toId: shape.id,
-							type: 'arrow',
-							props: {
-								terminal: 'start',
-								normalizedAnchor: { x: 0.5, y: 0.5 },
-								isExact: false,
-								isPrecise: false,
-							},
-						},
-						{
-							fromId: arrow.id,
-							toId: browserShape.id,
-							type: 'arrow',
-							props: {
-								terminal: 'end',
-								normalizedAnchor: { x: 0.5, y: 0.5 },
-								isExact: false,
-								isPrecise: false,
-							},
-						}
-					)
-				})
-
-				editor.createShapes(arrowShapes)
-				editor.createBindings(bindings)
 			} catch (err) {
 				console.error(err)
 				setError('Search failed. Try again.')

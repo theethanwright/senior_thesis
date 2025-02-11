@@ -2,7 +2,7 @@ import { Tldraw } from 'tldraw'
 import { useSyncDemo } from '@tldraw/sync'
 import 'tldraw/tldraw.css'
 import { BrowserShapeTool, BrowserShapeUtil } from './customElements/WebBrowser'
-import { SearchShapeTool, SearchShapeUtil } from './customElements/TopicDecleration'
+// import { SearchShapeTool, SearchShapeUtil } from './customElements/TopicDecleration'
 import { components, uiOverrides } from './customElements/ui'
 
 const customShapes = [BrowserShapeUtil, SearchShapeUtil]

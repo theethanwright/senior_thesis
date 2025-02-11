@@ -1,12 +1,11 @@
 import { Tldraw } from 'tldraw'
 import { useSyncDemo } from '@tldraw/sync'
 import 'tldraw/tldraw.css'
-import { BrowserShapeTool, BrowserShapeUtil } from './customElements/WebBrowser'
-import { SearchShapeTool, SearchShapeUtil } from './customElements/TopicDecleration'
+import { BrowserShapeTool, BrowserShapeUtil } from './customElements/TopicDecleration'
 import { components, uiOverrides } from './customElements/ui'
 
-const customShapes = [BrowserShapeUtil, SearchShapeUtil]
-const customTools = [BrowserShapeTool, SearchShapeTool]
+const customShapes = [BrowserShapeUtil]
+const customTools = [BrowserShapeTool]
 
 export default function App() {
   const store = useSyncDemo({ roomId: '1-sefgr', shapeUtils: customShapes })

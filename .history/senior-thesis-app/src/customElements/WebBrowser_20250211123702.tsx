@@ -8,7 +8,6 @@ import {
   useEditor,
   TLShapeId,
 } from 'tldraw'
-import { BrowserOverlayEmitter } from '../utils/BrowserOverlayEmitter'
 
 type BrowserShape = TLBaseShape<'browser', { w: number; h: number; url: string }>;
 
@@ -203,13 +202,6 @@ export class BrowserShapeUtil extends BaseBoxShapeUtil<BrowserShape> {
 
   override indicator(shape: BrowserShape) {
     return <rect width={shape.props.w} height={shape.props.h} />
-  }
-
-  override onDoubleClickEdge(shape: BrowserShape) {
-    // Signal to open the overlay with the URL from the shape.
-    BrowserOverlayEmitter.dispatchEvent(
-      new CustomEvent('open', { detail: { url: shape.props.url } })
-    )
   }
 }
 
