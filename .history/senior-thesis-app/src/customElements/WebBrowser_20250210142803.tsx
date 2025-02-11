@@ -141,13 +141,14 @@ export function LiveBrowser({ shape }: { shape: BrowserShape }) {
     }
 
     const zoomIn = (e: MouseEvent) => {
-      const selectedShape = editor.getSelectedShapes()
-      console.log('Selected shape:', selectedShape)
-      const shapeBounds = editor.getShapePageBounds(selectedShape)
+      const shapeBounds = editor.getShapePageBounds(shape.id)
       editor.zoomToBounds(shapeBounds, { animation: { duration: 200 } })
     }
-    
-    console.log('Zooming in on double click')
+
+    tlDrawContainer.addEventListener('dbclick', zoomIn)
+    return () => {
+      tlDrawContainer.removeEventListener('dbclick', zoomIn)
+    }
   }, [editor, shape])
 
   return (

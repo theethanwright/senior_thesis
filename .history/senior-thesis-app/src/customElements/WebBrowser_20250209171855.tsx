@@ -1,4 +1,4 @@
-import React, { useRef, useEffect, useState } from 'react'
+import React, { useRef, useEffect } from 'react'
 import {
   BaseBoxShapeTool,
   BaseBoxShapeUtil,
@@ -14,11 +14,14 @@ type BrowserShape = TLBaseShape<'browser', { w: number; h: number; url: string }
 export function LiveBrowser({ shape }: { shape: BrowserShape }) {
   const originalIframeRef = useRef<HTMLIFrameElement>(null)
   const editor = useEditor()
-  
-  // Define showOverlay state. Here we initialize it based on whether editor is in 'select.idle'
-  const [showOverlay, setShowOverlay] = useState<boolean>(!editor.isIn('select.idle'))
+
+  console.log('[LiveBrowser] Rendering LiveBrowser for shape:', shape)
+
+  // Use the editor state to determine whether to show the overlay.
+  const showOverlay = editor.isIn('select.idle')
 
   const duplicateBrowser = (clickedUrl: string | undefined) => {
+    console.log('[duplicateBrowser] Called with clickedUrl:', clickedUrl)
     if (typeof clickedUrl !== 'string' || !clickedUrl) {
       console.error("Invalid clickedUrl received:", clickedUrl)
       return
@@ -38,7 +41,8 @@ export function LiveBrowser({ shape }: { shape: BrowserShape }) {
       y: y + h / 2,
       rotation: 0,
     }
-  
+
+    console.log('[duplicateBrowser] Creating new browser shape:', newBrowserShape)
     editor.createShapes([newBrowserShape])
   
     const { x: newX, y: newY } = newBrowserShape
@@ -59,9 +63,11 @@ export function LiveBrowser({ shape }: { shape: BrowserShape }) {
         },
       },
     }
-  
+
+    console.log('[duplicateBrowser] Creating arrow shape:', arrowShape)
     editor.createShapes([arrowShape])
   
+    console.log('[duplicateBrowser] Creating bindings for shapes')
     editor.createBindings([
       {
         fromId: arrowShape.id,
@@ -89,67 +95,31 @@ export function LiveBrowser({ shape }: { shape: BrowserShape }) {
   
     const shapeBounds = editor.getShapePageBounds(newBrowserShape.id)
     if (shapeBounds) {
+      console.log('[duplicateBrowser] Zooming to bounds:', shapeBounds)
       editor.zoomToBounds(shapeBounds, { animation: { duration: 200 } })
     }
   }
 
   useEffect(() => {
+    console.log('[LiveBrowser] Mounting component and adding message event listener')
     const handleMessage = (event: MessageEvent) => {
       if (!originalIframeRef.current || event.source !== originalIframeRef.current.contentWindow) {
         return
       }
       if (event.data?.clickedLink) {
         const clickedUrl = event.data.clickedLink
-        console.log("User clicked on link:", clickedUrl)
+        console.log("[handleMessage] User clicked on link:", clickedUrl)
         duplicateBrowser(clickedUrl)
       }
     }
   
     window.addEventListener("message", handleMessage)
     return () => {
+      console.log('[LiveBrowser] Unmounting component and removing message event listener')
       window.removeEventListener("message", handleMessage)
     }
-  }, [shape])
-
-  useEffect(() => {
-    // Locate the TLDraw workspace container element. Adjust the selector if needed.
-    const tlDrawContainer = document.querySelector('.tl-container')
-    if (!tlDrawContainer) {
-      console.warn('TLDraw container not found')
-      return
-    }
-
-    const clickActivate = (e: MouseEvent) => {
-      const isSelected = editor.getSelectedShapeIds().includes(shape.id)
-      const isInSelectIdle = editor.isIn('select.idle')
-      const newShowOverlay = isInSelectIdle && isSelected
-      setShowOverlay(newShowOverlay)
-      console.log('Clicked:', e, { isSelected, isInSelectIdle, showOverlay: newShowOverlay })
-    }
-
-    tlDrawContainer.addEventListener('click', clickActivate)
-    return () => {
-      tlDrawContainer.removeEventListener('click', clickActivate)
-    }
-  }, [editor, shape])
-
-  useEffect(() => {
-    const tlDrawContainer = document.querySelector('.tl-container')
-    if (!tlDrawContainer) {
-      console.warn('TLDraw container not found')
-      return
-    }
-
-    const zoomIn = (e: MouseEvent) => {
-      const selectedShape = editor.getSelectedShapes()
-      console.log('Selected shape:', selectedShape)
-      const shapeBounds = editor.getShapePageBounds(selectedShape)
-      editor.zoomToBounds(shapeBounds, { animation: { duration: 200 } })
-    }
-    
-    console.log('Zooming in on double click')
-  }, [editor, shape])
-
+  }, [shape, editor])
+  
   return (
     <div style={{ position: 'relative', width: '100%', height: '100%' }}>
       <iframe
@@ -159,13 +129,13 @@ export function LiveBrowser({ shape }: { shape: BrowserShape }) {
           width: '100%',
           height: '100%',
           border: 'none',
-          // Use pointerEvents based on showOverlay
-          pointerEvents: showOverlay ? 'all' : 'none',
+          // When the overlay is visible (editor is in select.idle), disable iframe interactions.
+          pointerEvents: showOverlay ? 'none' : 'all',
         }}
         title="Live Web Page"
       />
-      {/* Render the overlay only when showOverlay is false */}
-      {!showOverlay && (
+      {/* Render the overlay only when showOverlay is true */}
+      {showOverlay && (
         <div
           style={{
             position: 'absolute',
@@ -193,14 +163,17 @@ export class BrowserShapeUtil extends BaseBoxShapeUtil<BrowserShape> {
   }
 
   override getDefaultProps() {
-    return {
+    const defaultProps = {
       w: 400,
       h: 300,
       url: 'https://en.wikipedia.org/wiki/Internet',
     }
+    console.log('[BrowserShapeUtil] getDefaultProps()', defaultProps)
+    return defaultProps
   }
 
   override component(shape: BrowserShape) {
+    console.log('[BrowserShapeUtil] Rendering component for shape:', shape)
     return (
       <HTMLContainer
         style={{
@@ -219,6 +192,7 @@ export class BrowserShapeUtil extends BaseBoxShapeUtil<BrowserShape> {
   }
 
   override indicator(shape: BrowserShape) {
+    console.log('[BrowserShapeUtil] Rendering indicator for shape:', shape)
     return <rect width={shape.props.w} height={shape.props.h} />
   }
 }
@@ -226,4 +200,8 @@ export class BrowserShapeUtil extends BaseBoxShapeUtil<BrowserShape> {
 export class BrowserShapeTool extends BaseBoxShapeTool {
   override shapeType = 'browser'
   static override id = 'browser'
+  constructor() {
+    super()
+    console.log('[BrowserShapeTool] Instantiated Tool for BrowserShape.')
+  }
 }

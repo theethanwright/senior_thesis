@@ -1,4 +1,4 @@
-import React, { useRef, useEffect, useState } from 'react'
+import React, { useState, useRef, useEffect } from 'react'
 import {
   BaseBoxShapeTool,
   BaseBoxShapeUtil,
@@ -12,20 +12,51 @@ import {
 type BrowserShape = TLBaseShape<'browser', { w: number; h: number; url: string }>;
 
 export function LiveBrowser({ shape }: { shape: BrowserShape }) {
-  const originalIframeRef = useRef<HTMLIFrameElement>(null)
-  const editor = useEditor()
-  
-  // Define showOverlay state. Here we initialize it based on whether editor is in 'select.idle'
-  const [showOverlay, setShowOverlay] = useState<boolean>(!editor.isIn('select.idle'))
+  const originalIframeRef = useRef<HTMLIFrameElement>(null);
+  const editor = useEditor();
+  // Start with iframe interactions disabled.
+  const [iframeDisabled, setIframeDisabled] = useState(true);
+  const lastClick = useRef<number | null>(null);
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const handleWrapperClick = (e: React.MouseEvent) => {
+    console.log("Wrapper clicked. iframeDisabled:", iframeDisabled);
+    // This handler is for single clicks.
+    const now = Date.now();
+    if (!lastClick.current) {
+      // First click.
+      console.log("Single click detected. Disabling iframe interactions.");
+      setIframeDisabled(true);
+      lastClick.current = now;
+      timerRef.current = setTimeout(() => {
+        console.log("15-second window expired.");
+        lastClick.current = null;
+      }, 15000);
+    }
+    // Stop propagation.
+    e.stopPropagation();
+  };
+
+  // Using onDoubleClick to bypass any native double-click handling issues.
+  const handleDoubleClick = (e: React.MouseEvent) => {
+    console.log("Double click detected. Re-enabling iframe interactions.");
+    setIframeDisabled(false);
+    lastClick.current = null;
+    if (timerRef.current) {
+      clearTimeout(timerRef.current);
+      timerRef.current = null;
+    }
+    e.stopPropagation();
+  };
 
   const duplicateBrowser = (clickedUrl: string | undefined) => {
     if (typeof clickedUrl !== 'string' || !clickedUrl) {
-      console.error("Invalid clickedUrl received:", clickedUrl)
-      return
+      console.error("Invalid clickedUrl received:", clickedUrl);
+      return;
     }
   
-    const { x, y } = shape
-    const { w, h } = shape.props
+    const { x, y } = shape;
+    const { w, h } = shape.props;
     const newBrowserShape = {
       id: `shape:${Date.now()}` as TLShapeId,
       type: 'browser' as const,
@@ -37,12 +68,12 @@ export function LiveBrowser({ shape }: { shape: BrowserShape }) {
       x: x + w + 50,
       y: y + h / 2,
       rotation: 0,
-    }
+    };
   
-    editor.createShapes([newBrowserShape])
+    editor.createShapes([newBrowserShape]);
   
-    const { x: newX, y: newY } = newBrowserShape
-    const { w: newW } = newBrowserShape.props
+    const { x: newX, y: newY } = newBrowserShape;
+    const { w: newW, h: newH } = newBrowserShape.props;
     
     const arrowShape = {
       id: `shape:${Date.now() + 1}` as TLShapeId,
@@ -58,9 +89,9 @@ export function LiveBrowser({ shape }: { shape: BrowserShape }) {
           y: newY + h / 2,
         },
       },
-    }
+    };
   
-    editor.createShapes([arrowShape])
+    editor.createShapes([arrowShape]);
   
     editor.createBindings([
       {
@@ -85,70 +116,31 @@ export function LiveBrowser({ shape }: { shape: BrowserShape }) {
           isPrecise: false,
         },
       },
-    ])
+    ]);
   
-    const shapeBounds = editor.getShapePageBounds(newBrowserShape.id)
+    const shapeBounds = editor.getShapePageBounds(newBrowserShape.id);
     if (shapeBounds) {
-      editor.zoomToBounds(shapeBounds, { animation: { duration: 200 } })
+      editor.zoomToBounds(shapeBounds, { animation: { duration: 200 } });
     }
-  }
+  };
 
   useEffect(() => {
     const handleMessage = (event: MessageEvent) => {
       if (!originalIframeRef.current || event.source !== originalIframeRef.current.contentWindow) {
-        return
+        return;
       }
       if (event.data?.clickedLink) {
-        const clickedUrl = event.data.clickedLink
-        console.log("User clicked on link:", clickedUrl)
-        duplicateBrowser(clickedUrl)
+        const clickedUrl = event.data.clickedLink;
+        console.log("User clicked on link:", clickedUrl);
+        duplicateBrowser(clickedUrl);
       }
-    }
+    };
   
-    window.addEventListener("message", handleMessage)
+    window.addEventListener("message", handleMessage);
     return () => {
-      window.removeEventListener("message", handleMessage)
-    }
-  }, [shape])
-
-  useEffect(() => {
-    // Locate the TLDraw workspace container element. Adjust the selector if needed.
-    const tlDrawContainer = document.querySelector('.tl-container')
-    if (!tlDrawContainer) {
-      console.warn('TLDraw container not found')
-      return
-    }
-
-    const clickActivate = (e: MouseEvent) => {
-      const isSelected = editor.getSelectedShapeIds().includes(shape.id)
-      const isInSelectIdle = editor.isIn('select.idle')
-      const newShowOverlay = isInSelectIdle && isSelected
-      setShowOverlay(newShowOverlay)
-      console.log('Clicked:', e, { isSelected, isInSelectIdle, showOverlay: newShowOverlay })
-    }
-
-    tlDrawContainer.addEventListener('click', clickActivate)
-    return () => {
-      tlDrawContainer.removeEventListener('click', clickActivate)
-    }
-  }, [editor, shape])
-
-  useEffect(() => {
-    const tlDrawContainer = document.querySelector('.tl-container')
-    if (!tlDrawContainer) {
-      console.warn('TLDraw container not found')
-      return
-    }
-
-    const zoomIn = (e: MouseEvent) => {
-      const selectedShape = editor.getSelectedShapes()
-      console.log('Selected shape:', selectedShape)
-      const shapeBounds = editor.getShapePageBounds(selectedShape)
-      editor.zoomToBounds(shapeBounds, { animation: { duration: 200 } })
-    }
-    
-    console.log('Zooming in on double click')
-  }, [editor, shape])
+      window.removeEventListener("message", handleMessage);
+    };
+  }, [shape]);
 
   return (
     <div style={{ position: 'relative', width: '100%', height: '100%' }}>
@@ -159,27 +151,27 @@ export function LiveBrowser({ shape }: { shape: BrowserShape }) {
           width: '100%',
           height: '100%',
           border: 'none',
-          // Use pointerEvents based on showOverlay
-          pointerEvents: showOverlay ? 'all' : 'none',
+          pointerEvents: iframeDisabled ? 'none' : 'all',
         }}
         title="Live Web Page"
       />
-      {/* Render the overlay only when showOverlay is false */}
-      {!showOverlay && (
-        <div
-          style={{
-            position: 'absolute',
-            top: 0,
-            left: 0,
-            width: '100%',
-            height: '100%',
-            zIndex: 9999,
-            background: 'rgba(0,0,0,0.1)',
-            cursor: 'default',
-            pointerEvents: 'auto',
-          }}
-        />
-      )}
+      {/* Always render an overlay.
+          When iframeDisabled is true, the overlay intercepts clicks.
+          When false, pointer events pass through to the iframe. */}
+      <div
+        onClick={handleWrapperClick}
+        onDoubleClick={handleDoubleClick}
+        style={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          width: '100%',
+          height: '100%',
+          background: iframeDisabled ? 'rgba(0,0,0,0.1)' : 'transparent',
+          cursor: iframeDisabled ? 'move' : 'default',
+          pointerEvents: iframeDisabled ? 'auto' : 'none',
+        }}
+      />
     </div>
   )
 }

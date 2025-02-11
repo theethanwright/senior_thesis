@@ -1,4 +1,4 @@
-import React, { useRef, useEffect, useState } from 'react'
+import React, { useRef, useEffect } from 'react'
 import {
   BaseBoxShapeTool,
   BaseBoxShapeUtil,
@@ -14,9 +14,6 @@ type BrowserShape = TLBaseShape<'browser', { w: number; h: number; url: string }
 export function LiveBrowser({ shape }: { shape: BrowserShape }) {
   const originalIframeRef = useRef<HTMLIFrameElement>(null)
   const editor = useEditor()
-  
-  // Define showOverlay state. Here we initialize it based on whether editor is in 'select.idle'
-  const [showOverlay, setShowOverlay] = useState<boolean>(!editor.isIn('select.idle'))
 
   const duplicateBrowser = (clickedUrl: string | undefined) => {
     if (typeof clickedUrl !== 'string' || !clickedUrl) {
@@ -111,46 +108,15 @@ export function LiveBrowser({ shape }: { shape: BrowserShape }) {
     }
   }, [shape])
 
-  useEffect(() => {
-    // Locate the TLDraw workspace container element. Adjust the selector if needed.
-    const tlDrawContainer = document.querySelector('.tl-container')
-    if (!tlDrawContainer) {
-      console.warn('TLDraw container not found')
-      return
-    }
+  const showOverlay = editor.isIn('select.idle') && editor.getSelectedShapes().includes(shape)
+  console.log("showOverlay:", showOverlay)
 
-    const clickActivate = (e: MouseEvent) => {
-      const isSelected = editor.getSelectedShapeIds().includes(shape.id)
-      const isInSelectIdle = editor.isIn('select.idle')
-      const newShowOverlay = isInSelectIdle && isSelected
-      setShowOverlay(newShowOverlay)
-      console.log('Clicked:', e, { isSelected, isInSelectIdle, showOverlay: newShowOverlay })
-    }
-
-    tlDrawContainer.addEventListener('click', clickActivate)
-    return () => {
-      tlDrawContainer.removeEventListener('click', clickActivate)
-    }
-  }, [editor, shape])
-
-  useEffect(() => {
-    const tlDrawContainer = document.querySelector('.tl-container')
-    if (!tlDrawContainer) {
-      console.warn('TLDraw container not found')
-      return
-    }
-
-    const zoomIn = (e: MouseEvent) => {
-      const selectedShape = editor.getSelectedShapes()
-      console.log('Selected shape:', selectedShape)
-      const shapeBounds = editor.getShapePageBounds(selectedShape)
-      editor.zoomToBounds(shapeBounds, { animation: { duration: 200 } })
-    }
-    
-    console.log('Zooming in on double click')
-  }, [editor, shape])
+  onChange={(e) => {
+    console.log("onChange:", e)
+  }}
 
   return (
+
     <div style={{ position: 'relative', width: '100%', height: '100%' }}>
       <iframe
         ref={originalIframeRef}
@@ -159,13 +125,13 @@ export function LiveBrowser({ shape }: { shape: BrowserShape }) {
           width: '100%',
           height: '100%',
           border: 'none',
-          // Use pointerEvents based on showOverlay
-          pointerEvents: showOverlay ? 'all' : 'none',
+          // When the overlay is visible (editor is in select.idle), disable iframe interactions.
+          pointerEvents: showOverlay ? 'none' : 'all',
         }}
         title="Live Web Page"
       />
-      {/* Render the overlay only when showOverlay is false */}
-      {!showOverlay && (
+      {/* Render the overlay only when showOverlay is true */}
+      {showOverlay && (
         <div
           style={{
             position: 'absolute',

@@ -146,7 +146,6 @@ export function LiveBrowser({ shape }: { shape: BrowserShape }) {
       const shapeBounds = editor.getShapePageBounds(selectedShape)
       editor.zoomToBounds(shapeBounds, { animation: { duration: 200 } })
     }
-    
     console.log('Zooming in on double click')
   }, [editor, shape])
 

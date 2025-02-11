@@ -112,42 +112,18 @@ export function LiveBrowser({ shape }: { shape: BrowserShape }) {
   }, [shape])
 
   useEffect(() => {
-    // Locate the TLDraw workspace container element. Adjust the selector if needed.
-    const tlDrawContainer = document.querySelector('.tl-container')
-    if (!tlDrawContainer) {
-      console.warn('TLDraw container not found')
-      return
-    }
-
-    const clickActivate = (e: MouseEvent) => {
-      const isSelected = editor.getSelectedShapeIds().includes(shape.id)
+    const handleClick = (e: MouseEvent) => {
+      const isSelected = editor.getSelectedShapes().includes(shape)
       const isInSelectIdle = editor.isIn('select.idle')
-      const newShowOverlay = isInSelectIdle && isSelected
+      const newShowOverlay = isInSelectIdle && !isSelected
       setShowOverlay(newShowOverlay)
       console.log('Clicked:', e, { isSelected, isInSelectIdle, showOverlay: newShowOverlay })
     }
 
-    tlDrawContainer.addEventListener('click', clickActivate)
+    window.addEventListener('click', handleClick)
     return () => {
-      tlDrawContainer.removeEventListener('click', clickActivate)
+      window.removeEventListener('click', handleClick)
     }
-  }, [editor, shape])
-
-  useEffect(() => {
-    const tlDrawContainer = document.querySelector('.tl-container')
-    if (!tlDrawContainer) {
-      console.warn('TLDraw container not found')
-      return
-    }
-
-    const zoomIn = (e: MouseEvent) => {
-      const selectedShape = editor.getSelectedShapes()
-      console.log('Selected shape:', selectedShape)
-      const shapeBounds = editor.getShapePageBounds(selectedShape)
-      editor.zoomToBounds(shapeBounds, { animation: { duration: 200 } })
-    }
-    
-    console.log('Zooming in on double click')
   }, [editor, shape])
 
   return (
