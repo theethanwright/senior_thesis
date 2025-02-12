@@ -58,7 +58,7 @@ app.get("/proxy", (req, res) => {
             let modifiedBody = body.toString();
             const contentType = response.headers["content-type"];
             res.set("Content-Type", contentType);
-            // console.log(`Fetched URL: ${targetUrl} with contentType: ${contentType}`);
+            console.log(`Fetched URL: ${targetUrl} with contentType: ${contentType}`);
 
             if (contentType.includes("text/html")) {
                 // Get the origin from the target URL
@@ -68,31 +68,29 @@ app.get("/proxy", (req, res) => {
                 // Inject a base tag so relative URLs resolve properly
                 const baseTag = `<base href="${baseUrl}/">`;
                 modifiedBody = modifiedBody.replace("<head>", `<head>${baseTag}`);
-                // console.log("Injected base tag:", baseTag);
+                console.log("Injected base tag:", baseTag);
 
-                // Use a regex that matches both relative ("/foo") and protocol-relative ("//foo") URLs.
+                // Rewrite relative href/src attributes unless they are already proxied:
                 modifiedBody = modifiedBody.replace(
-                    /(href|src)="((?:\/{1,2})[^"]*)"/g,
+                    /(href|src)="(\/[^"]*)"/g,
                     (match, attr, urlPath) => {
-                        // Skip if already proxied, in /scripts/ path, or from squarespace-cdn.com
+                        console.log(`Processing ${attr} with urlPath: ${urlPath}`);
+
+                        // Check if already proxied by looking for the full proxy string.
                         if (
                             urlPath.startsWith("/proxy") ||
                             urlPath.startsWith("/scripts/") ||
-                            urlPath.includes("/proxy?url=") ||
-                            urlPath.startsWith("//images.squarespace-cdn.com")
+                            urlPath.includes("http://localhost:8000/proxy?url=")
                         ) {
+                            console.log(`Skipping rewrite for (already proxied): ${urlPath}`);
                             return `${attr}="${urlPath}"`;
                         }
-                        
-                        // Determine fullUrl based on whether the urlPath is protocol-relative or relative.
-                        let fullUrl;
-                        if (urlPath.startsWith("//")) {
-                            fullUrl = "https:" + urlPath;
-                        } else {
-                            fullUrl = baseUrl + urlPath;
-                        }
-                        
+
+                        // Build the full URL from the original base and path
+                        const fullUrl = baseUrl + urlPath;
+                        console.log(`Rewriting ${urlPath} to: ${fullUrl}`);
                         const rewritten = `${attr}="/proxy?url=${encodeURIComponent(fullUrl)}"`;
+                        console.log(`Rewritten attribute: ${rewritten}`);
                         return rewritten;
                     }
                 );
@@ -114,10 +112,10 @@ app.get("/proxy", (req, res) => {
                   </script>
                 `;
                 modifiedBody = modifiedBody.replace("</body>", trackingScript + "</body>");
-                // console.log("Injected tracking script.");
+                console.log("Injected tracking script.");
             }
 
-            // console.log("Sending modified response for URL:", targetUrl);
+            console.log("Sending modified response for URL:", targetUrl);
             res.send(modifiedBody);
         }
     );

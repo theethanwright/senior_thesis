@@ -14,10 +14,9 @@ export default function App() {
 
   const handleDragOver = (event) => {
     event.preventDefault()
-    console.debug('Drag over event:', {
+    console.debug('Container Drag over:', {
       clientX: event.clientX,
       clientY: event.clientY,
-      dataTransferTypes: event.dataTransfer.types,
     })
   }
 
@@ -37,7 +36,7 @@ export default function App() {
 
   const handleDrop = async (event) => {
     event.preventDefault()
-    console.debug('Drop event (bubble phase) received:', {
+    console.debug('Container Drop event:', {
       clientX: event.clientX,
       clientY: event.clientY,
     })
@@ -75,7 +74,7 @@ export default function App() {
 
   useEffect(() => {
     const globalDropHandler = (event) => {
-      console.debug('Global drop event detected:', {
+      console.debug('Global drop event:', {
         clientX: event.clientX,
         clientY: event.clientY,
         target: event.target,
@@ -89,7 +88,7 @@ export default function App() {
 
   return (
     <div
-      style={{ position: 'fixed', inset: 0 }}
+      style={{ position: 'fixed', inset: 0, width: '100vw', height: '100vh', backgroundColor: '#f0f0f0' }}
       onDragOver={handleDragOver}
       onDragEnter={handleDragEnter}
       onDropCapture={handleDropCapture}

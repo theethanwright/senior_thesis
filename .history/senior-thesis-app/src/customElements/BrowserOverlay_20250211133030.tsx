@@ -2,16 +2,18 @@ import React, { useEffect, useState, useRef } from 'react'
 import { createPortal } from 'react-dom'
 import { 
     useEditor,
-    TLParentId,
-    TLShapeId
+    TLParentId 
  } from 'tldraw'
 import { BrowserOverlayEmitter } from '../utils/BrowserOverlayEmitter'
+
+// Make sure to import TLParentId if needed.
+// import { TLParentId } from 'your-types-module';
 
 export function BrowserOverlay() {
   const editor = useEditor()
   const [isOpen, setIsOpen] = useState(false)
   const [url, setUrl] = useState('')
-  const [parentShapeId, setParentShapeId] = useState<TLShapeId | null>(null)
+  const [parentShapeId, setParentShapeId] = useState<TLParentId | null>(null)
   const overlayIframeRef = useRef<HTMLIFrameElement>(null)
 
   // Listen for the "open" event from onDoubleClickEdge.
@@ -22,8 +24,6 @@ export function BrowserOverlay() {
         setUrl(detail.url)
         setParentShapeId(detail.parentShapeId)
         setIsOpen(true)
-        ;(window as any).__browserOverlayOpen = true
-        console.log((window as any).__browserOverlayOpen)
       }
     }
     BrowserOverlayEmitter.addEventListener('open', handleOpen)
@@ -60,26 +60,16 @@ export function BrowserOverlay() {
     const { x, y } = parentShape
     const { w, h } = parentShape.props as { w: number; h: number; url: string }
 
-    let newUrl = clickedUrl;
-    // Remove proxy wrapper, whether the URL is absolute or relative.
-    const proxyIndicator = '/proxy?url=';
-    const proxyIndex = newUrl.indexOf(proxyIndicator);
-    if (proxyIndex !== -1) {
-      newUrl = decodeURIComponent(newUrl.substring(proxyIndex + proxyIndicator.length));
-      setUrl(newUrl)
-      console.log("Overlay: Stripped proxy prefix from clickedUrl:", newUrl)
-    }
-    
     const newBrowserShape = {
-      id: `shape:${Date.now()}` as TLShapeId,
+      id: `shape:${Date.now()}`,
       type: 'browser' as const,
       props: {
         w,
         h,
-        url: newUrl,
+        url: clickedUrl,
       },
-      x: x,
-      y: y + h + 50,
+      x: x + w + 50, // placed 50px right of the parent shape
+      y: y + h / 2,  // vertically centered
       rotation: 0,
     }
 
@@ -89,7 +79,7 @@ export function BrowserOverlay() {
     const { w: newW } = newBrowserShape.props
 
     const arrowShape = {
-      id: `shape:${Date.now() + 1}` as TLShapeId,
+      id: `shape:${Date.now() + 1}`,
       type: 'arrow',
       props: {
         color: 'black',
@@ -130,9 +120,13 @@ export function BrowserOverlay() {
         },
       },
     ])
-    editor.select(newBrowserShape.id)
-    // Set the new browser shape as the parent for future clicks.
-    setParentShapeId(newBrowserShape.id)
+
+    const shapeBounds = editor.getShapePageBounds(newBrowserShape.id)
+    if (shapeBounds) {
+      editor.zoomToBounds(shapeBounds, { animation: { duration: 200 } })
+    }
+    // Close the overlay after duplicating.
+    closeOverlay()
   }
 
   const closeOverlay = (e?: React.MouseEvent) => {
@@ -140,14 +134,13 @@ export function BrowserOverlay() {
     setIsOpen(false)
     setUrl('')
     setParentShapeId(null)
-    ;(window as any).__browserOverlayOpen = false
   }
 
   if (!isOpen) return null
-  
+
   return createPortal(
     <div
-    //   onClick={(e) => e.stopPropagation()}
+      onClick={(e) => e.stopPropagation()}
       style={{
         position: 'fixed',
         top: 0,
@@ -181,7 +174,7 @@ export function BrowserOverlay() {
       </button>
       <iframe
         ref={overlayIframeRef}
-        src={`http://localhost:8000/proxy?url=${encodeURIComponent(url)}`}
+        src={url}
         title="Focused WebView"
         style={{
           width: '100%',

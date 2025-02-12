@@ -66,7 +66,6 @@ export function BrowserOverlay() {
     const proxyIndex = newUrl.indexOf(proxyIndicator);
     if (proxyIndex !== -1) {
       newUrl = decodeURIComponent(newUrl.substring(proxyIndex + proxyIndicator.length));
-      setUrl(newUrl)
       console.log("Overlay: Stripped proxy prefix from clickedUrl:", newUrl)
     }
     

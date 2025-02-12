@@ -22,8 +22,8 @@ export function BrowserOverlay() {
         setUrl(detail.url)
         setParentShapeId(detail.parentShapeId)
         setIsOpen(true)
+        // Set the global flag to indicate the overlay is open.
         ;(window as any).__browserOverlayOpen = true
-        console.log((window as any).__browserOverlayOpen)
       }
     }
     BrowserOverlayEmitter.addEventListener('open', handleOpen)
@@ -60,26 +60,16 @@ export function BrowserOverlay() {
     const { x, y } = parentShape
     const { w, h } = parentShape.props as { w: number; h: number; url: string }
 
-    let newUrl = clickedUrl;
-    // Remove proxy wrapper, whether the URL is absolute or relative.
-    const proxyIndicator = '/proxy?url=';
-    const proxyIndex = newUrl.indexOf(proxyIndicator);
-    if (proxyIndex !== -1) {
-      newUrl = decodeURIComponent(newUrl.substring(proxyIndex + proxyIndicator.length));
-      setUrl(newUrl)
-      console.log("Overlay: Stripped proxy prefix from clickedUrl:", newUrl)
-    }
-    
     const newBrowserShape = {
       id: `shape:${Date.now()}` as TLShapeId,
       type: 'browser' as const,
       props: {
         w,
         h,
-        url: newUrl,
+        url: clickedUrl,
       },
-      x: x,
-      y: y + h + 50,
+      x: x + w + 50, // placed 50px right of the parent shape
+      y: y + h / 2,  // vertically centered
       rotation: 0,
     }
 
@@ -130,9 +120,13 @@ export function BrowserOverlay() {
         },
       },
     ])
-    editor.select(newBrowserShape.id)
-    // Set the new browser shape as the parent for future clicks.
-    setParentShapeId(newBrowserShape.id)
+
+    const shapeBounds = editor.getShapePageBounds(newBrowserShape.id)
+    if (shapeBounds) {
+      editor.zoomToBounds(shapeBounds, { animation: { duration: 200 } })
+    }
+    // Close the overlay after duplicating.
+    closeOverlay()
   }
 
   const closeOverlay = (e?: React.MouseEvent) => {
@@ -140,14 +134,15 @@ export function BrowserOverlay() {
     setIsOpen(false)
     setUrl('')
     setParentShapeId(null)
+    // Clear the global flag when overlay closes.
     ;(window as any).__browserOverlayOpen = false
   }
 
   if (!isOpen) return null
-  
+
   return createPortal(
     <div
-    //   onClick={(e) => e.stopPropagation()}
+      onClick={(e) => e.stopPropagation()}
       style={{
         position: 'fixed',
         top: 0,

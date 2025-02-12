@@ -31,7 +31,7 @@ export function LiveBrowser({ shape }: { shape: BrowserShape }) {
     const proxyIndex = newUrl.indexOf(proxyIndicator);
     if (proxyIndex !== -1) {
       newUrl = decodeURIComponent(newUrl.substring(proxyIndex + proxyIndicator.length));
-      console.log("Shape: Stripped proxy prefix from clickedUrl:", newUrl)
+      console.log("Stripped proxy prefix from clickedUrl:", newUrl)
     }
     
     const { x, y } = shape;
@@ -112,7 +112,7 @@ export function LiveBrowser({ shape }: { shape: BrowserShape }) {
       }
       if (event.data?.clickedLink) {
         const clickedUrl = event.data.clickedLink
-        // console.log("User clicked on link:", clickedUrl)
+        console.log("User clicked on link:", clickedUrl)
         duplicateBrowser(clickedUrl)
       }
     }
@@ -143,6 +143,8 @@ export function LiveBrowser({ shape }: { shape: BrowserShape }) {
       tlDrawContainer.removeEventListener('click', clickActivate)
     }
   }, [editor, shape])
+
+  console.log(`URL:   http://localhost:8000/proxy?url=${encodeURIComponent(shape.props.url)}`)
 
   return (
     <div style={{ position: 'relative', width: '100%', height: '100%' }}>

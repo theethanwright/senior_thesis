@@ -39,6 +39,7 @@ export function BrowserOverlay() {
       if (event.data?.clickedLink) {
         const clickedUrl = event.data.clickedLink
         console.log('Overlay clicked link:', clickedUrl)
+        setUrl(clickedUrl)
         duplicateBrowser(clickedUrl)
       }
     }
@@ -66,7 +67,6 @@ export function BrowserOverlay() {
     const proxyIndex = newUrl.indexOf(proxyIndicator);
     if (proxyIndex !== -1) {
       newUrl = decodeURIComponent(newUrl.substring(proxyIndex + proxyIndicator.length));
-      setUrl(newUrl)
       console.log("Overlay: Stripped proxy prefix from clickedUrl:", newUrl)
     }
     
@@ -144,6 +144,8 @@ export function BrowserOverlay() {
   }
 
   if (!isOpen) return null
+
+  console.log(`URL: http://localhost:8000/proxy?url=${encodeURIComponent(url)}`)
   
   return createPortal(
     <div
@@ -181,7 +183,7 @@ export function BrowserOverlay() {
       </button>
       <iframe
         ref={overlayIframeRef}
-        src={`http://localhost:8000/proxy?url=${encodeURIComponent(url)}`}
+        src={`http://localhost:8000/proxy?url=${encodeURIComponent(newUrl)}`}
         title="Focused WebView"
         style={{
           width: '100%',

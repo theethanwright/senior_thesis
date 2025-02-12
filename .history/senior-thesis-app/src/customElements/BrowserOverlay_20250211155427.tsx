@@ -39,6 +39,7 @@ export function BrowserOverlay() {
       if (event.data?.clickedLink) {
         const clickedUrl = event.data.clickedLink
         console.log('Overlay clicked link:', clickedUrl)
+        setUrl(clickedUrl)
         duplicateBrowser(clickedUrl)
       }
     }
@@ -60,23 +61,13 @@ export function BrowserOverlay() {
     const { x, y } = parentShape
     const { w, h } = parentShape.props as { w: number; h: number; url: string }
 
-    let newUrl = clickedUrl;
-    // Remove proxy wrapper, whether the URL is absolute or relative.
-    const proxyIndicator = '/proxy?url=';
-    const proxyIndex = newUrl.indexOf(proxyIndicator);
-    if (proxyIndex !== -1) {
-      newUrl = decodeURIComponent(newUrl.substring(proxyIndex + proxyIndicator.length));
-      setUrl(newUrl)
-      console.log("Overlay: Stripped proxy prefix from clickedUrl:", newUrl)
-    }
-    
     const newBrowserShape = {
       id: `shape:${Date.now()}` as TLShapeId,
       type: 'browser' as const,
       props: {
         w,
         h,
-        url: newUrl,
+        url: clickedUrl,
       },
       x: x,
       y: y + h + 50,
@@ -144,7 +135,7 @@ export function BrowserOverlay() {
   }
 
   if (!isOpen) return null
-  
+
   return createPortal(
     <div
     //   onClick={(e) => e.stopPropagation()}

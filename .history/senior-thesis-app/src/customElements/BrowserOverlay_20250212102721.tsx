@@ -39,6 +39,7 @@ export function BrowserOverlay() {
       if (event.data?.clickedLink) {
         const clickedUrl = event.data.clickedLink
         console.log('Overlay clicked link:', clickedUrl)
+        setUrl(clickedUrl)
         duplicateBrowser(clickedUrl)
       }
     }
@@ -66,7 +67,6 @@ export function BrowserOverlay() {
     const proxyIndex = newUrl.indexOf(proxyIndicator);
     if (proxyIndex !== -1) {
       newUrl = decodeURIComponent(newUrl.substring(proxyIndex + proxyIndicator.length));
-      setUrl(newUrl)
       console.log("Overlay: Stripped proxy prefix from clickedUrl:", newUrl)
     }
     

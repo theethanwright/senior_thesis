@@ -35,8 +35,8 @@ export class SearchShapeUtil extends BaseBoxShapeUtil<SearchShape> {
 		const [error, setError] = useState<string | null>(null)
 
 		// Replace these with your actual API key and Custom Search Engine ID.
-		const API_KEY = process.env.REACT_APP_API_KEY
-		const CX = process.env.REACT_APP_CX
+		const API_KEY = 'AIzaSyCVxxk8XqyZviQx5RCHRZnQDRqjLnk4CJQ'
+		const CX = '30eeac3513aae4cbb'
 
 		const handleSearch = async () => {
 			if (!query.trim()) return

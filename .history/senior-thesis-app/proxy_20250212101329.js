@@ -74,25 +74,30 @@ app.get("/proxy", (req, res) => {
                 modifiedBody = modifiedBody.replace(
                     /(href|src)="((?:\/{1,2})[^"]*)"/g,
                     (match, attr, urlPath) => {
-                        // Skip if already proxied, in /scripts/ path, or from squarespace-cdn.com
+                        // console.log(`Processing ${attr} with urlPath: ${urlPath}`);
+
+                        // Skip if the URL is already proxied or is in the /scripts/ path.
                         if (
                             urlPath.startsWith("/proxy") ||
                             urlPath.startsWith("/scripts/") ||
-                            urlPath.includes("/proxy?url=") ||
-                            urlPath.startsWith("//images.squarespace-cdn.com")
+                            urlPath.includes("/proxy?url=")
                         ) {
+                            // console.log(`Skipping rewrite for (already proxied): ${urlPath}`);
                             return `${attr}="${urlPath}"`;
                         }
-                        
+
                         // Determine fullUrl based on whether the urlPath is protocol-relative or relative.
                         let fullUrl;
                         if (urlPath.startsWith("//")) {
                             fullUrl = "https:" + urlPath;
+                            // console.log(`Detected protocol-relative URL. Using: ${fullUrl}`);
                         } else {
                             fullUrl = baseUrl + urlPath;
                         }
-                        
+
+                        // console.log(`Rewriting ${urlPath} to: ${fullUrl}`);
                         const rewritten = `${attr}="/proxy?url=${encodeURIComponent(fullUrl)}"`;
+                        // console.log(`Rewritten attribute: ${rewritten}`);
                         return rewritten;
                     }
                 );

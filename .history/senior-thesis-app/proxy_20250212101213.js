@@ -18,7 +18,6 @@ const proxyRequest = (targetUrl, res) => {
             if (error) {
                 return res.status(500).send("Error fetching the URL.");
             }
-
             const contentType = response.headers["content-type"];
             res.set("Content-Type", contentType);
             res.send(body);
@@ -61,29 +60,26 @@ app.get("/proxy", (req, res) => {
             // console.log(`Fetched URL: ${targetUrl} with contentType: ${contentType}`);
 
             if (contentType.includes("text/html")) {
-                // Get the origin from the target URL
                 const baseUrl = new URL(targetUrl).origin;
                 console.log("Base URL:", baseUrl);
 
-                // Inject a base tag so relative URLs resolve properly
-                const baseTag = `<base href="${baseUrl}/">`;
-                modifiedBody = modifiedBody.replace("<head>", `<head>${baseTag}`);
-                // console.log("Injected base tag:", baseTag);
+                // Removed base tag injection
+                // const baseTag = `<base href="${baseUrl}/">`;
+                // modifiedBody = modifiedBody.replace("<head>", `<head>${baseTag}`);
 
                 // Use a regex that matches both relative ("/foo") and protocol-relative ("//foo") URLs.
                 modifiedBody = modifiedBody.replace(
                     /(href|src)="((?:\/{1,2})[^"]*)"/g,
                     (match, attr, urlPath) => {
-                        // Skip if already proxied, in /scripts/ path, or from squarespace-cdn.com
+                        // Skip if the URL is already proxied or is in the /scripts/ path.
                         if (
                             urlPath.startsWith("/proxy") ||
                             urlPath.startsWith("/scripts/") ||
-                            urlPath.includes("/proxy?url=") ||
-                            urlPath.startsWith("//images.squarespace-cdn.com")
+                            urlPath.includes("/proxy?url=")
                         ) {
                             return `${attr}="${urlPath}"`;
                         }
-                        
+
                         // Determine fullUrl based on whether the urlPath is protocol-relative or relative.
                         let fullUrl;
                         if (urlPath.startsWith("//")) {
@@ -91,7 +87,7 @@ app.get("/proxy", (req, res) => {
                         } else {
                             fullUrl = baseUrl + urlPath;
                         }
-                        
+
                         const rewritten = `${attr}="/proxy?url=${encodeURIComponent(fullUrl)}"`;
                         return rewritten;
                     }

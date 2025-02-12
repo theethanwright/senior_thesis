@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react'
+import React from 'react'
 import { Tldraw } from 'tldraw'
 import { useSyncDemo } from '@tldraw/sync'
 import 'tldraw/tldraw.css'
@@ -18,13 +18,6 @@ export default function App() {
       clientX: event.clientX,
       clientY: event.clientY,
       dataTransferTypes: event.dataTransfer.types,
-    })
-  }
-
-  const handleDragEnter = (event) => {
-    console.debug('Drag enter event:', {
-      clientX: event.clientX,
-      clientY: event.clientY,
     })
   }
 
@@ -73,25 +66,10 @@ export default function App() {
     }
   }
 
-  useEffect(() => {
-    const globalDropHandler = (event) => {
-      console.debug('Global drop event detected:', {
-        clientX: event.clientX,
-        clientY: event.clientY,
-        target: event.target,
-      })
-    }
-    window.addEventListener('drop', globalDropHandler, true)
-    return () => {
-      window.removeEventListener('drop', globalDropHandler, true)
-    }
-  }, [])
-
   return (
     <div
       style={{ position: 'fixed', inset: 0 }}
       onDragOver={handleDragOver}
-      onDragEnter={handleDragEnter}
       onDropCapture={handleDropCapture}
       onDrop={handleDrop}
     >

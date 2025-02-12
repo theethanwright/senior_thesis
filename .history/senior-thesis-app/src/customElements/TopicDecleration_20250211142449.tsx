@@ -35,8 +35,8 @@ export class SearchShapeUtil extends BaseBoxShapeUtil<SearchShape> {
 		const [error, setError] = useState<string | null>(null)
 
 		// Replace these with your actual API key and Custom Search Engine ID.
-		const API_KEY = process.env.REACT_APP_API_KEY
-		const CX = process.env.REACT_APP_CX
+		const API_KEY = 'AIzaSyCVxxk8XqyZviQx5RCHRZnQDRqjLnk4CJQ'
+		const CX = '30eeac3513aae4cbb'
 
 		const handleSearch = async () => {
 			if (!query.trim()) return
@@ -63,21 +63,15 @@ export class SearchShapeUtil extends BaseBoxShapeUtil<SearchShape> {
 				// Define a margin of 50px between shapes.
 				const margin = 1000
 
-				// For each URL, create a new browser shape positioned below the search shape and centered.
-				const browserWidth = 1000
-				const horizontalGap = 50
-				const count = urls.length
-				const totalGroupWidth = count * browserWidth + (count - 1) * horizontalGap
-				const startX = shape.x + shape.props.w / 2 - totalGroupWidth / 2
-
+				// For each URL, create a new browser shape positioned below the search shape.
 				const newShapes = urls.map((url: string, i: number) => ({
 					id: `shape:${Date.now() + i}` as TLShapeId,
 					type: 'browser' as const,
-					x: startX + i * (browserWidth + horizontalGap),
-					y: shape.y + shape.props.h + 1000, // vertical gap remains 1000
+					x: shape.x + i * (400 + margin),
+					y: shape.y + shape.props.h + margin,
 					rotation: 0,
 					props: {
-						w: browserWidth,
+						w: 1000,
 						h: 500,
 						url,
 					},

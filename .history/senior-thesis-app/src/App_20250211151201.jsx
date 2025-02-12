@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react'
+import React from 'react'
 import { Tldraw } from 'tldraw'
 import { useSyncDemo } from '@tldraw/sync'
 import 'tldraw/tldraw.css'
@@ -14,43 +14,20 @@ export default function App() {
 
   const handleDragOver = (event) => {
     event.preventDefault()
-    console.debug('Drag over event:', {
-      clientX: event.clientX,
-      clientY: event.clientY,
-      dataTransferTypes: event.dataTransfer.types,
-    })
-  }
-
-  const handleDragEnter = (event) => {
-    console.debug('Drag enter event:', {
-      clientX: event.clientX,
-      clientY: event.clientY,
-    })
-  }
-
-  const handleDropCapture = (event) => {
-    console.debug('Drop capture fired:', {
-      clientX: event.clientX,
-      clientY: event.clientY,
-    })
   }
 
   const handleDrop = async (event) => {
     event.preventDefault()
-    console.debug('Drop event (bubble phase) received:', {
-      clientX: event.clientX,
-      clientY: event.clientY,
-    })
     const { dataTransfer } = event
-    console.debug('dataTransfer:', dataTransfer)
 
+    // Check for image files
     if (dataTransfer.files && dataTransfer.files.length > 0) {
-      console.debug('Files dropped:', dataTransfer.files)
       for (let file of dataTransfer.files) {
         if (file.type.startsWith('image/')) {
-          console.log('Dropped image file:', file.name, file)
+          // Create an object URL for the image file
           const imageUrl = URL.createObjectURL(file)
-          console.debug('Image URL created:', imageUrl)
+          // Use tldraw API to add an image shape.
+          // Assuming store.createImageShape is a function you implement
           store.createImageShape?.({
             src: imageUrl,
             x: event.clientX,
@@ -59,40 +36,24 @@ export default function App() {
         }
       }
     } else {
+      // Handle dragged text (e.g., from another website)
       const text = dataTransfer.getData('text')
       if (text) {
-        console.log('Dropped text:', text)
+        // Use tldraw API to add a text shape.
+        // Assuming store.createTextShape is a function you implement
         store.createTextShape?.({
           text,
           x: event.clientX,
           y: event.clientY,
         })
-      } else {
-        console.debug('No image or text data found in drop event.')
       }
     }
   }
-
-  useEffect(() => {
-    const globalDropHandler = (event) => {
-      console.debug('Global drop event detected:', {
-        clientX: event.clientX,
-        clientY: event.clientY,
-        target: event.target,
-      })
-    }
-    window.addEventListener('drop', globalDropHandler, true)
-    return () => {
-      window.removeEventListener('drop', globalDropHandler, true)
-    }
-  }, [])
 
   return (
     <div
       style={{ position: 'fixed', inset: 0 }}
       onDragOver={handleDragOver}
-      onDragEnter={handleDragEnter}
-      onDropCapture={handleDropCapture}
       onDrop={handleDrop}
     >
       <Tldraw

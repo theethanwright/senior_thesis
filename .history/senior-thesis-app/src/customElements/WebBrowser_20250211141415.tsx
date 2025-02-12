@@ -24,35 +24,26 @@ export function LiveBrowser({ shape }: { shape: BrowserShape }) {
       console.error("Invalid clickedUrl received:", clickedUrl)
       return
     }
-
-    let newUrl = clickedUrl;
-    // Remove proxy wrapper, whether the URL is absolute or relative.
-    const proxyIndicator = '/proxy?url=';
-    const proxyIndex = newUrl.indexOf(proxyIndicator);
-    if (proxyIndex !== -1) {
-      newUrl = decodeURIComponent(newUrl.substring(proxyIndex + proxyIndicator.length));
-      console.log("Shape: Stripped proxy prefix from clickedUrl:", newUrl)
-    }
-    
-    const { x, y } = shape;
-    const { w, h } = shape.props;
+  
+    const { x, y } = shape
+    const { w, h } = shape.props
     const newBrowserShape = {
       id: `shape:${Date.now()}` as TLShapeId,
       type: 'browser' as const,
       props: {
         w,
         h,
-        url: newUrl,
+        url: clickedUrl,
       },
-      x: x,
-      y: y + h + 50,
+      x: x + w + 50,
+      y: y + h / 2,
       rotation: 0,
     }
   
-    editor.createShapes([newBrowserShape]);
+    editor.createShapes([newBrowserShape])
   
-    const { x: newX, y: newY } = newBrowserShape;
-    const { w: newW } = newBrowserShape.props;
+    const { x: newX, y: newY } = newBrowserShape
+    const { w: newW } = newBrowserShape.props
     
     const arrowShape = {
       id: `shape:${Date.now() + 1}` as TLShapeId,
@@ -70,7 +61,7 @@ export function LiveBrowser({ shape }: { shape: BrowserShape }) {
       },
     }
   
-    editor.createShapes([arrowShape]);
+    editor.createShapes([arrowShape])
   
     editor.createBindings([
       {
@@ -95,14 +86,14 @@ export function LiveBrowser({ shape }: { shape: BrowserShape }) {
           isPrecise: false,
         },
       },
-    ]);
+    ])
   
-    const shapeBounds = editor.getShapePageBounds(newBrowserShape.id);
+    const shapeBounds = editor.getShapePageBounds(newBrowserShape.id)
+    // Only zoom if BrowserOverlay is not open.
     if (shapeBounds && !(window as any).__browserOverlayOpen) {
-      editor.zoomToBounds(shapeBounds, { animation: { duration: 200 } });
+      editor.zoomToBounds(shapeBounds, { animation: { duration: 200 } })
+      console.log((window as any).__browserOverlayOpen)
     }
-
-    editor.select(newBrowserShape.id);
   }
 
   useEffect(() => {
@@ -112,7 +103,7 @@ export function LiveBrowser({ shape }: { shape: BrowserShape }) {
       }
       if (event.data?.clickedLink) {
         const clickedUrl = event.data.clickedLink
-        // console.log("User clicked on link:", clickedUrl)
+        console.log("User clicked on link:", clickedUrl)
         duplicateBrowser(clickedUrl)
       }
     }
@@ -177,8 +168,6 @@ export function LiveBrowser({ shape }: { shape: BrowserShape }) {
     </div>
   )
 }
-
-
 
 export class BrowserShapeUtil extends BaseBoxShapeUtil<BrowserShape> {
   static override type = 'browser' as const

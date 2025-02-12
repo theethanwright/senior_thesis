@@ -79,7 +79,6 @@ app.get("/proxy", (req, res) => {
                             urlPath.startsWith("/proxy") ||
                             urlPath.startsWith("/scripts/") ||
                             urlPath.includes("/proxy?url=") ||
-                            urlPath.startsWith("//images.squarespace-cdn.com")
                         ) {
                             return `${attr}="${urlPath}"`;
                         }
