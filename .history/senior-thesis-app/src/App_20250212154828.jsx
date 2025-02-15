@@ -18,24 +18,17 @@ export default function App() {
     e.preventDefault()
     if (!editor) return
 
-    const dt = e.dataTransfer
-    // If there are files, let the default file handling continue
-    if (dt.files?.length) {
-      // ...existing file drop handling logic...
-      return
-    }
-
-    // Check for HTML first, then fall back to plain text if available
-    const droppedHtml = dt.getData('text/html')
-    const droppedText = dt.getData(droppedHtml ? 'text/html' : 'text/plain')
-    console.log('Dropped content:', droppedHtml || droppedText)
+    // Get the dropped text
+    const droppedText = e.dataTransfer.getData('text')
+    console.log('Dropped text:', droppedText)
     if (!droppedText.trim()) return
 
     // Convert client coordinates to canvas page coordinates
     const { x, y } = editor.screenToPage({ x: e.clientX, y: e.clientY })
     console.log('Drop coordinates (canvas page):', { x, y })
 
-    // Create a new text shape with the dropped content (modify as needed)
+    // Create a new text shape at the drop position.
+    // Note: We're using the API to create shapes, adjust the code if your API differs.
     editor.createShapes([
       {
         id: editor.createId(),
@@ -52,7 +45,6 @@ export default function App() {
 
   const handleDragOver = (e) => {
     e.preventDefault()
-    e.stopPropagation();
   }
 
   return (

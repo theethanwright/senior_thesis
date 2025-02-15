@@ -24,7 +24,7 @@ export class SearchShapeUtil extends BaseBoxShapeUtil<SearchShape> {
 	override getDefaultProps() {
 		return {
 			w: 300,
-			h: 100,
+			h: 50,
 		}
 	}
 
@@ -51,84 +51,36 @@ export class SearchShapeUtil extends BaseBoxShapeUtil<SearchShape> {
 				)
 				const data = await res.json()
 
-				let urls: string[] = []
-				if (data.items) {
-					if (isImageSearch) {
-						// Use up to 12 results for image search.
-						urls = data.items.slice(0, 12).map((item: any) => item.link)
-					} else {
-						urls = data.items.slice(0, 3).map((item: any) => item.link)
-						// If there is at least one result but fewer than three, just use one.
-						if (urls.length < 3 && urls.length > 0) {
-							urls = [urls[0]]
-						}
-					}
+				// Get the top three result URLs.
+				let urls: string[] = data.items
+					? data.items.slice(0, 3).map((item: any) => item.link)
+					: []
+
+				if (urls.length < 3 && urls.length > 0) {
+					urls = [urls[0]]
 				}
 
-				// Return early if no URLs found.
-				if (urls.length === 0) {
-					setError('No results found.')
-					return
-				}
-
-				// Define dimensions and gaps.
+				const margin = 1000
 				const browserWidth = 1000
-				const browserHeight = 500
 				const horizontalGap = 50
-				// For image search grid, we add a vertical gap between rows.
-				const verticalGap = 50
-				const margin = 1000 // distance between search shape and new shapes
+				const count = urls.length
+				const totalGroupWidth = count * browserWidth + (count - 1) * horizontalGap
+				const startX = shape.x + shape.props.w / 2 - totalGroupWidth / 2
 
-				let newShapes: any[] = []
-				if (isImageSearch) {
-					// 3 columns grid:
-					const columns = 3
-					const rows = Math.ceil(urls.length / columns)
-					const totalGroupWidth = columns * browserWidth + (columns - 1) * horizontalGap
-					const totalGroupHeight = rows * browserHeight + (rows - 1) * verticalGap
-					const startX = shape.x + shape.props.w / 2 - totalGroupWidth / 2
-					const startY = shape.y + shape.props.h + margin
-
-					newShapes = urls.map((url: string, i: number) => {
-						const col = i % columns
-						const row = Math.floor(i / columns)
-						return {
-							id: `shape:${Date.now() + i}` as TLShapeId,
-							type: 'browser' as const,
-							x: startX + col * (browserWidth + horizontalGap),
-							y: startY + row * (browserHeight + verticalGap),
-							rotation: 0,
-							props: {
-								w: browserWidth,
-								h: browserHeight,
-								url,
-							},
-						}
-					})
-				} else {
-					// Single row layout (as before)
-					const count = urls.length
-					const totalGroupWidth = count * browserWidth + (count - 1) * horizontalGap
-					const startX = shape.x + shape.props.w / 2 - totalGroupWidth / 2
-					const startY = shape.y + shape.props.h + margin
-
-					newShapes = urls.map((url: string, i: number) => ({
-						id: `shape:${Date.now() + i}` as TLShapeId,
-						type: 'browser' as const,
-						x: startX + i * (browserWidth + horizontalGap),
-						y: startY,
-						rotation: 0,
-						props: {
-							w: browserWidth,
-							h: browserHeight,
-							url,
-						},
-					}))
-				}
-
+				const newShapes = urls.map((url: string, i: number) => ({
+					id: `shape:${Date.now() + i}` as TLShapeId,
+					type: 'browser' as const,
+					x: startX + i * (browserWidth + horizontalGap),
+					y: shape.y + shape.props.h + 1000,
+					rotation: 0,
+					props: {
+						w: browserWidth,
+						h: 500,
+						url,
+					},
+				}))
 				editor.createShapes(newShapes)
 
-				// Create arrows from the search shape to each new browser shape.
 				const searchCenter = {
 					x: shape.x + shape.props.w / 2,
 					y: shape.y + shape.props.h / 2,
@@ -154,7 +106,6 @@ export class SearchShapeUtil extends BaseBoxShapeUtil<SearchShape> {
 					}
 
 					arrowShapes.push(arrow)
-
 					bindings.push(
 						{
 							fromId: arrow.id,
@@ -184,7 +135,6 @@ export class SearchShapeUtil extends BaseBoxShapeUtil<SearchShape> {
 				editor.createShapes(arrowShapes)
 				editor.createBindings(bindings)
 
-				// Compute the union bounds of the new shapes.
 				const unionBounds = newShapes.reduce((acc, shape) => {
 					const b = editor.getShapePageBounds(shape.id)
 					if (!b) return acc

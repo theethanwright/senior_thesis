@@ -24,7 +24,7 @@ export class SearchShapeUtil extends BaseBoxShapeUtil<SearchShape> {
 	override getDefaultProps() {
 		return {
 			w: 300,
-			h: 100,
+			h: 50,
 		}
 	}
 

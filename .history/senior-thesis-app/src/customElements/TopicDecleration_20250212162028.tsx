@@ -24,7 +24,7 @@ export class SearchShapeUtil extends BaseBoxShapeUtil<SearchShape> {
 	override getDefaultProps() {
 		return {
 			w: 300,
-			h: 100,
+			h: 50,
 		}
 	}
 
@@ -33,99 +33,55 @@ export class SearchShapeUtil extends BaseBoxShapeUtil<SearchShape> {
 		const [query, setQuery] = useState('')
 		const [loading, setLoading] = useState(false)
 		const [error, setError] = useState<string | null>(null)
-		const [isImageSearch, setIsImageSearch] = useState(false)
 
-		const API_KEY = import.meta.env.VITE_API_KEY
-		const CX = import.meta.env.VITE_CX
-		console.log('API_KEY:', API_KEY, 'CX:', CX)
+		const API_KEY = process.env.REACT_APP_API_KEY
+		const CX = process.env.REACT_APP_CX
+		console.log('API_KEY:', API_KEY, 'CX:', CX);
 
 		const handleSearch = async () => {
 			if (!query.trim()) return
 			setLoading(true)
 			setError(null)
 			try {
-				// Append &searchType=image if image search is enabled.
-				const searchTypeParam = isImageSearch ? '&searchType=image' : ''
 				const res = await fetch(
-					`https://www.googleapis.com/customsearch/v1?key=${API_KEY}&cx=${CX}&q=${encodeURIComponent(query)}${searchTypeParam}`
+					`https://www.googleapis.com/customsearch/v1?key=${API_KEY}&cx=${CX}&q=${encodeURIComponent(
+						query
+					)}`
 				)
 				const data = await res.json()
 
-				let urls: string[] = []
-				if (data.items) {
-					if (isImageSearch) {
-						// Use up to 12 results for image search.
-						urls = data.items.slice(0, 12).map((item: any) => item.link)
-					} else {
-						urls = data.items.slice(0, 3).map((item: any) => item.link)
-						// If there is at least one result but fewer than three, just use one.
-						if (urls.length < 3 && urls.length > 0) {
-							urls = [urls[0]]
-						}
-					}
+				// Get the top three result URLs.
+				let urls: string[] = data.items
+					? data.items.slice(0, 3).map((item: any) => item.link)
+					: []
+
+				// If there are fewer than three results (but at least one), create one browser shape.
+				if (urls.length < 3 && urls.length > 0) {
+					urls = [urls[0]]
 				}
 
-				// Return early if no URLs found.
-				if (urls.length === 0) {
-					setError('No results found.')
-					return
-				}
+				// Define a margin of 50px between shapes.
+				const margin = 1000
 
-				// Define dimensions and gaps.
+				// For each URL, create a new browser shape positioned below the search shape and centered.
 				const browserWidth = 1000
-				const browserHeight = 500
 				const horizontalGap = 50
-				// For image search grid, we add a vertical gap between rows.
-				const verticalGap = 50
-				const margin = 1000 // distance between search shape and new shapes
+				const count = urls.length
+				const totalGroupWidth = count * browserWidth + (count - 1) * horizontalGap
+				const startX = shape.x + shape.props.w / 2 - totalGroupWidth / 2
 
-				let newShapes: any[] = []
-				if (isImageSearch) {
-					// 3 columns grid:
-					const columns = 3
-					const rows = Math.ceil(urls.length / columns)
-					const totalGroupWidth = columns * browserWidth + (columns - 1) * horizontalGap
-					const totalGroupHeight = rows * browserHeight + (rows - 1) * verticalGap
-					const startX = shape.x + shape.props.w / 2 - totalGroupWidth / 2
-					const startY = shape.y + shape.props.h + margin
-
-					newShapes = urls.map((url: string, i: number) => {
-						const col = i % columns
-						const row = Math.floor(i / columns)
-						return {
-							id: `shape:${Date.now() + i}` as TLShapeId,
-							type: 'browser' as const,
-							x: startX + col * (browserWidth + horizontalGap),
-							y: startY + row * (browserHeight + verticalGap),
-							rotation: 0,
-							props: {
-								w: browserWidth,
-								h: browserHeight,
-								url,
-							},
-						}
-					})
-				} else {
-					// Single row layout (as before)
-					const count = urls.length
-					const totalGroupWidth = count * browserWidth + (count - 1) * horizontalGap
-					const startX = shape.x + shape.props.w / 2 - totalGroupWidth / 2
-					const startY = shape.y + shape.props.h + margin
-
-					newShapes = urls.map((url: string, i: number) => ({
-						id: `shape:${Date.now() + i}` as TLShapeId,
-						type: 'browser' as const,
-						x: startX + i * (browserWidth + horizontalGap),
-						y: startY,
-						rotation: 0,
-						props: {
-							w: browserWidth,
-							h: browserHeight,
-							url,
-						},
-					}))
-				}
-
+				const newShapes = urls.map((url: string, i: number) => ({
+					id: `shape:${Date.now() + i}` as TLShapeId,
+					type: 'browser' as const,
+					x: startX + i * (browserWidth + horizontalGap),
+					y: shape.y + shape.props.h + 1000, // vertical gap remains 1000
+					rotation: 0,
+					props: {
+						w: browserWidth,
+						h: 500,
+						url,
+					},
+				}))
 				editor.createShapes(newShapes)
 
 				// Create arrows from the search shape to each new browser shape.
@@ -184,7 +140,7 @@ export class SearchShapeUtil extends BaseBoxShapeUtil<SearchShape> {
 				editor.createShapes(arrowShapes)
 				editor.createBindings(bindings)
 
-				// Compute the union bounds of the new shapes.
+				// Compute the total bounds by reducing over the newShapes array:
 				const unionBounds = newShapes.reduce((acc, shape) => {
 					const b = editor.getShapePageBounds(shape.id)
 					if (!b) return acc
@@ -196,6 +152,7 @@ export class SearchShapeUtil extends BaseBoxShapeUtil<SearchShape> {
 					return { x, y, w: right - x, h: bottom - y }
 				}, null as { x: number; y: number; w: number; h: number } | null)
 
+				// Only zoom if BrowserOverlay is not open.
 				if (unionBounds && !(window as any).__browserOverlayOpen) {
 					editor.zoomToBounds(unionBounds, { animation: { duration: 200 } })
 				}
@@ -219,17 +176,6 @@ export class SearchShapeUtil extends BaseBoxShapeUtil<SearchShape> {
 					gap: '8px',
 				}}
 			>
-				{/* Toggle switch for search type */}
-				<div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-					<label htmlFor="search-toggle">Image Search</label>
-					<input
-						id="search-toggle"
-						type="checkbox"
-						checked={isImageSearch}
-						onChange={(e) => setIsImageSearch(e.target.checked)}
-						onPointerDown={stopEventPropagation}
-					/>
-				</div>
 				<div style={{ display: 'flex', gap: '8px' }}>
 					<input
 						type="text"
